@@ -90,10 +90,12 @@ class VOCDetection(data.Dataset):
     def __init__(self, 
                  root,
                  img_size=None,
-                 image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
+                #  image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
+                 image_sets=[('2007', 'trainval')],
                  transform=None, 
                  target_transform=VOCAnnotationTransform(),
-                 dataset_name='VOC0712'
+                #  dataset_name='VOC0712',
+                 dataset_name='VOC2007',
                  ):
         self.root = root
         self.img_size = img_size
@@ -186,7 +188,7 @@ if __name__ == "__main__":
     img_size = 640
     pixel_mean = (0.406, 0.456, 0.485)  # BGR
     pixel_std = (0.225, 0.224, 0.229)   # BGR
-    data_root = 'D:\\python_work\\object-detection\\dataset\\VOCdevkit'
+    data_root = '/root/PyTorch_YOLOv2/setup/VOCdevkit'
     transform = Augmentation(img_size, pixel_mean, pixel_std)
     transform = BaseTransform(img_size, pixel_mean, pixel_std)
 

@@ -5,3 +5,6 @@ __pycache__
 *.pkl
 *.pyc
 det_results
+*.xml
+*.tar
+VOCdevkit

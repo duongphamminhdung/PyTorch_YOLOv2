@@ -80,7 +80,7 @@ def parse_args():
     # 数据集参数
     parser.add_argument('-d', '--dataset', default='voc',
                         help='voc or coco')
-    parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
+    parser.add_argument('--root', default='/root/PyTorch_YOLOv2/setup',
                         help='data root')
 
     return parser.parse_args()
