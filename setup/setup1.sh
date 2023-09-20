@@ -14,7 +14,7 @@ python iconda.py
 echo init conda
 conda init 
 
-echo conda create --name simp python=3.6
-conda create --name simp python=3.6
+echo conda create --name simp python=3.7
+conda create --name simp python=3.7
 
 tmux

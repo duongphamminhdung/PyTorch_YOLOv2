@@ -112,7 +112,7 @@ def build_darknet19(pretrained=False):
         url = model_urls['darknet19']
         # checkpoint state dict
         checkpoint_state_dict = torch.hub.load_state_dict_from_url(
-            url=url, map_location="cpu", check_hash=True)
+            url=url, map_location="cpu", check_hash=False)
         # model state dict
         model_state_dict = model.state_dict()
         # check
