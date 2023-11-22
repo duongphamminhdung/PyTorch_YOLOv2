@@ -15,3 +15,5 @@ conda install pytorch==1.8.1 torchvision==0.9.1 cudatoolkit=10.2 -c pytorch
 echo pip install -r requirements.txt
 pip install -r requirements.txt
 echo Set up complete
+
+pip install git+https://github.com/aleju/imgaug.git

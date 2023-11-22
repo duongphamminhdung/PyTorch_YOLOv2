@@ -8,3 +8,4 @@ det_results
 *.xml
 *.tar
 VOCdevkit
+test/*.jpg

@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 import types
 from numpy import random
-
+import imgaug as ia
+import imgaug.augmenters as iaa
+from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
 def intersect(box_a, box_b):
     max_xy = np.minimum(box_a[:, 2:], box_b[2:])
@@ -44,13 +46,46 @@ class Compose(object):
 
     def __init__(self, transforms):
         self.transforms = transforms
-
+        self.k = 0
     def __call__(self, img, boxes=None, labels=None):
-        for t in self.transforms:
+        for t in self.transforms[:-1]:
             img, boxes, labels = t(img, boxes, labels)
+        # for k in range(img.shape[0]):
+        # import pdb; pdb.set_trace()
+        cv2.imwrite('test/'+str(self.k)+'.jpg', img)
+        self.k += 1
         return img, boxes, labels
-
-
+class lib_augment(object):
+    # def __init__(self, image, boxes=None, labels=None):
+    #     if boxes is not None:
+    #         bbs = BoundingBoxesOnImage([
+    #             BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
+    #         ], shape = img.shape)
+    def __call__(self, image, boxes=None, labels=None):
+        if boxes is not None:
+            bbs = BoundingBoxesOnImage([
+                BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
+            ], shape = image.shape)
+        seq = iaa.Sequential([
+            iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
+            iaa.Affine(
+            translate_px={"x": 40, "y": 60},
+            scale=(0.5, 0.7)
+            ) # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
+        ])
+        
+        image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
+        # import pdb; pdb.set_trace()
+        bbs = np.zeros((len(bbs_aug), 4))
+        for k in range(len(bbs_aug)):
+            t = bbs_aug[k]
+            bbs[k] += (t.x1, t.y1, t.x2, t.y2)
+        # bbs = np.array([t.x1, t.y1, t.x1, t.y2] for t in bbs_aug)
+        
+        for box in bbs:
+            image_aug = cv2.rectangle(image_aug, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 0, 0), 2)
+        return image_aug, bbs, labels
+        
 class ConvertFromInts(object):
     def __call__(self, image, boxes=None, labels=None):
         return image.astype(np.float32), boxes, labels
@@ -385,10 +420,11 @@ class Augmentation(object):
         self.augment = Compose([
             ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
-            PhotometricDistort(),          # 图像颜色增强
-            Expand(self.mean),             # 扩充增强
-            RandomSampleCrop(),            # 随机剪裁
-            RandomMirror(),                # 随机水平镜像
+            lib_augment(),
+            # PhotometricDistort(),          # 图像颜色增强
+            # Expand(self.mean),             # 扩充增强
+            # RandomSampleCrop(),            # 随机剪裁
+            # RandomMirror(),                # 随机水平镜像
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
             Resize(self.size),             # resize操作
             Normalize(self.mean, self.std) # 图像颜色归一化
