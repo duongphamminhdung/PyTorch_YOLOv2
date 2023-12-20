@@ -17,14 +17,14 @@ from models.build import build_yolov2
 parser = argparse.ArgumentParser(description='YOLOv2 Detection')
 parser.add_argument('-d', '--dataset', default='voc',
                     help='voc, coco-val.')
-parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
+parser.add_argument('--root', default='setup',
                     help='data root')
 parser.add_argument('-size', '--input_size', default=416, type=int,
                     help='输入图像尺寸')
 
 parser.add_argument('-v', '--version', default='yolov2',
                     help='yolo')
-parser.add_argument('--weight', default=None,
+parser.add_argument('--weight', default='setup/yolov2_voc.pth',
                     type=str, help='模型权重的路径')
 parser.add_argument('--conf_thresh', default=0.1, type=float,
                     help='得分阈值')
@@ -35,9 +35,9 @@ parser.add_argument('--topk', default=100, type=int,
                     
 parser.add_argument('-vs', '--visual_threshold', default=0.33, type=float,
                     help='用于可视化的阈值参数')
-parser.add_argument('--cuda', action='store_true', default=False, 
+parser.add_argument('--cuda', action='store_true', default=True, 
                     help='use cuda.')
-parser.add_argument('--save', action='store_true', default=False, 
+parser.add_argument('--save', action='store_true', default=True, 
                     help='save vis results.')
 
 args = parser.parse_args()
@@ -123,8 +123,8 @@ def test(args, model, device, testset, transform, class_colors=None, class_names
             class_indexs=class_indexs,
             dataset_name=args.dataset
             )
-        cv2.imshow('detection', img_processed)
-        cv2.waitKey(0)
+        # cv2.imshow('detection', img_processed)
+        # cv2.waitKey(0)
 
         # 保存可视化结果
         if args.save:

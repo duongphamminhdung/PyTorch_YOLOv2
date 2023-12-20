@@ -17,3 +17,7 @@ pip install -r requirements.txt
 echo Set up complete
 
 pip install git+https://github.com/aleju/imgaug.git
+
+#get pre-trained weights
+wget https://github.com/yjh0410/PyTorch_YOLOv2/releases/download/yolov2_weight/yolov2_voc.pth
+

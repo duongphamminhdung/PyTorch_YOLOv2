@@ -14,7 +14,7 @@ from models.build import build_yolov2
 parser = argparse.ArgumentParser(description='YOLOv2 Detector Evaluation')
 parser.add_argument('-d', '--dataset', default='voc',
                     help='voc, coco-val, coco-test.')
-parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
+parser.add_argument('--root', default='setup',
                     help='data root')
 
 parser.add_argument('-v', '--version', default='yolov2',
@@ -27,12 +27,12 @@ parser.add_argument('--nms_thresh', default=0.50, type=float,
                     help='NMS 阈值')
 parser.add_argument('--topk', default=1000, type=int,
                     help='topk predicted candidates')
-parser.add_argument('--weight', type=str, default=None, 
+parser.add_argument('--weight', type=str, default='setup/yolov2_voc.pth', 
                     help='Trained state_dict file path to open')
 
 parser.add_argument('-size', '--input_size', default=416, type=int,
                     help='input_size')
-parser.add_argument('--cuda', action='store_true', default=False,
+parser.add_argument('--cuda', action='store_true', default=True,
                     help='Use cuda')
 
 args = parser.parse_args()

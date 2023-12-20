@@ -9,3 +9,4 @@ det_results
 *.tar
 VOCdevkit
 test/*.jpg
+setup/VOCdevkitVOC2007/results/*.txt

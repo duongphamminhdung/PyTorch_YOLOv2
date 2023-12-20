@@ -54,6 +54,7 @@ class Compose(object):
         # import pdb; pdb.set_trace()
         cv2.imwrite('test/'+str(self.k)+'.jpg', img)
         self.k += 1
+        # print(self.k)
         return img, boxes, labels
 class lib_augment(object):
     # def __init__(self, image, boxes=None, labels=None):
@@ -66,13 +67,27 @@ class lib_augment(object):
             bbs = BoundingBoxesOnImage([
                 BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
             ], shape = image.shape)
-        seq = iaa.Sequential([
-            iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
-            iaa.Affine(
-            translate_px={"x": 40, "y": 60},
-            scale=(0.5, 0.7)
-            ) # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
-        ])
+            seq = iaa.Sequential([
+                        iaa.SomeOf(1, [
+                            iaa.GaussianBlur(sigma=(0.5, 3.0)),
+                            # iaa.MedianBlur(k=(3, 7)),
+                            iaa.BilateralBlur(d=(3, 10), sigma_color=(10, 250), sigma_space=(10, 250)),
+                            iaa.MotionBlur(k=7, angle=(0, 360), direction=(-0.5, 0.5))
+                        ]),
+                        iaa.Fliplr(0.5),
+                        iaa.LinearContrast((0.75, 1.5)),
+                        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+                        iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
+                        iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
+                        iaa.Affine(
+                            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+                            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
+                            order=[0, 1], # use nearest neighbour or bilinear interpolation (fast)
+                            cval=(0),
+                            mode='constant') # use any of scikit-image's warping modes (see 2nd image from the top for examples)
+                        # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
+                        
+            ])
         
         image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
         # import pdb; pdb.set_trace()
