@@ -57,7 +57,8 @@ class Compose(object):
         # print(self.k)
         return img, boxes, labels
 class lib_augment(object):
-    # def __init__(self, image, boxes=None, labels=None):
+    def __init__(self, size):
+        self.size = size
     #     if boxes is not None:
     #         bbs = BoundingBoxesOnImage([
     #             BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
@@ -84,9 +85,10 @@ class lib_augment(object):
                             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
                             order=[0, 1], # use nearest neighbour or bilinear interpolation (fast)
                             cval=(0),
-                            mode='constant') # use any of scikit-image's warping modes (see 2nd image from the top for examples)
+                            mode='constant'), # use any of scikit-image's warping modes (see 2nd image from the top for examples)
                         # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
-                        
+                        iaa.Resize({"height": self.size, "width": self.size})
+
             ])
         
         image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
@@ -435,13 +437,13 @@ class Augmentation(object):
         self.augment = Compose([
             ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
-            lib_augment(),
+            lib_augment(self.size),
             # PhotometricDistort(),          # 图像颜色增强
             # Expand(self.mean),             # 扩充增强
             # RandomSampleCrop(),            # 随机剪裁
             # RandomMirror(),                # 随机水平镜像
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
-            Resize(self.size),             # resize操作
+            # Resize(self.size),             # resize操作
             Normalize(self.mean, self.std) # 图像颜色归一化
         ])
 
