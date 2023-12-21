@@ -64,9 +64,12 @@ class lib_augment(object):
     #             BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
     #         ], shape = img.shape)
     def __call__(self, image, boxes=None, labels=None):
+        raw_bbs = boxes
+        raw_labels = labels
+        
         if boxes is not None:
             bbs = BoundingBoxesOnImage([
-                BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
+                BoundingBox(x1=boxes[i][0], y1=boxes[i][1], x2=boxes[i][2], y2=boxes[i][3], label = labels[i]) for i in range(len(boxes))
             ], shape = image.shape)
             seq = iaa.Sequential([
                         iaa.SomeOf(1, [
@@ -83,6 +86,8 @@ class lib_augment(object):
                         iaa.Affine(
                             scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
                             translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
+                            rotate = (-7, 7),
+                            shear = (-7, 7),
                             order=[0, 1], # use nearest neighbour or bilinear interpolation (fast)
                             cval=(0),
                             mode='constant'), # use any of scikit-image's warping modes (see 2nd image from the top for examples)
@@ -92,11 +97,14 @@ class lib_augment(object):
             ])
         
         image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
+        bbs_aug = bbs_aug.remove_out_of_image().clip_out_of_image()
         # import pdb; pdb.set_trace()
         bbs = np.zeros((len(bbs_aug), 4))
+        labels = np.zeros((len(bbs_aug), 1))
         for k in range(len(bbs_aug)):
             t = bbs_aug[k]
             bbs[k] += (t.x1, t.y1, t.x2, t.y2)
+            labels[k] += t.label
         # bbs = np.array([t.x1, t.y1, t.x1, t.y2] for t in bbs_aug)
         
         for box in bbs:

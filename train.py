@@ -237,11 +237,19 @@ def train():
                             total_loss.item(), 
                             train_size, t1-t0),
                         flush=True)
-
+                f = open('weights/voc/yolov2/log.txt', 'a')
+                f.write('[Epoch %d/%d][Iter %d/%d][lr %.6f]'
+                    '[Loss: obj %.2f || cls %.2f || bbox %.2f || total %.2f || size %d || time: %.2f]'
+                        % (epoch+1, max_epoch, iter_i, epoch_size, tmp_lr,
+                            conf_loss.item(), 
+                            cls_loss.item(), 
+                            bbox_loss.item(), 
+                            total_loss.item(), 
+                            train_size, t1-t0))
                 t0 = time.time()
 
         # evaluation
-        if epoch  % args.eval_epoch == 0 or (epoch + 1) == max_epoch:
+        if epoch  % args.eval_epoch == 0 or (epoch + 1) == max_epoch or epoch < 10:
             model.trainable = False
             model.set_grid(val_size)
             model.eval()
