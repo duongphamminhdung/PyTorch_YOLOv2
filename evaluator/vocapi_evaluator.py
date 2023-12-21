@@ -81,7 +81,8 @@ class VOCAPIEvaluator():
         print('Mean AP: ', self.map)
         
         f = open('/root/PyTorch_YOLOv2/weights/voc/yolov2/log.txt', 'a')
-        f.write(self.map + '\n')
+        f.write("Mean MAP: "+ str(self.map))
+        f.write('\n')
   
 
     def parse_rec(self, filename):
