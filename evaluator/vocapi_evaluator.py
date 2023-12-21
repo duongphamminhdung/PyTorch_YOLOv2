@@ -79,6 +79,9 @@ class VOCAPIEvaluator():
         self.evaluate_detections(self.all_boxes)
 
         print('Mean AP: ', self.map)
+        
+        f = open('/root/PyTorch_YOLOv2/weights/voc/yolov2/log.txt', 'a')
+        f.write(self.map + '\n')
   
 
     def parse_rec(self, filename):

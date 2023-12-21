@@ -246,6 +246,7 @@ def train():
                             bbox_loss.item(), 
                             total_loss.item(), 
                             train_size, t1-t0))
+                f.write('\n')
                 t0 = time.time()
 
         # evaluation

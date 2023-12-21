@@ -83,15 +83,12 @@ class lib_augment(object):
                         iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
                         iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
                         iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
-                        iaa.Affine(
-                            scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-                            translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-                            rotate = (-7, 7),
-                            shear = (-7, 7),
-                            order=[0, 1], # use nearest neighbour or bilinear interpolation (fast)
-                            cval=(0),
-                            mode='constant'), # use any of scikit-image's warping modes (see 2nd image from the top for examples)
-                        # translate by 40/60px on x/y axis, and scale to 50-70%, affects BBs
+                        iaa.SomeOf(1, [
+                            iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
+                            iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
+                            iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                            iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                        ]),
                         iaa.Resize({"height": self.size, "width": self.size})
 
             ])

@@ -10,3 +10,4 @@ det_results
 VOCdevkit
 test/*.jpg
 setup/VOCdevkitVOC2007/results/*.txt
+weights/voc/yolov2/log.txt
