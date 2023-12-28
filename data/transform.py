@@ -48,7 +48,7 @@ class Compose(object):
         self.transforms = transforms
         self.k = 0
     def __call__(self, img, boxes=None, labels=None):
-        for t in self.transforms[:-1]:
+        for t in self.transforms:
             img, boxes, labels = t(img, boxes, labels)
         # for k in range(img.shape[0]):
         # import pdb; pdb.set_trace()
@@ -442,13 +442,13 @@ class Augmentation(object):
         self.augment = Compose([
             ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
-            lib_augment(self.size),
-            # PhotometricDistort(),          # 图像颜色增强
-            # Expand(self.mean),             # 扩充增强
-            # RandomSampleCrop(),            # 随机剪裁
-            # RandomMirror(),                # 随机水平镜像
+            # lib_augment(self.size),
+            PhotometricDistort(),          # 图像颜色增强
+            Expand(self.mean),             # 扩充增强
+            RandomSampleCrop(),            # 随机剪裁
+            RandomMirror(),                # 随机水平镜像
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
-            # Resize(self.size),             # resize操作
+            Resize(self.size),             # resize操作
             Normalize(self.mean, self.std) # 图像颜色归一化
         ])
 
