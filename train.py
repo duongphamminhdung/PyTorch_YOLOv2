@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument('--tfboard', action='store_true', default=False,
                         help='use tensorboard')
     parser.add_argument('--eval_epoch', type=int,
-                            default=3, help='interval between evaluations')
+                            default=5, help='interval between evaluations')
     parser.add_argument('--save_folder', default='weights/', type=str, 
                         help='Gamma update for SGD')
     parser.add_argument('--num_workers', default=8, type=int, 
@@ -250,7 +250,7 @@ def train():
                 t0 = time.time()
 
         # evaluation
-        if epoch  % args.eval_epoch == 0 or (epoch + 1) == max_epoch or epoch < 10:
+        if epoch  % args.eval_epoch == 0 or (epoch + 1) == max_epoch :
             model.trainable = False
             model.set_grid(val_size)
             model.eval()
