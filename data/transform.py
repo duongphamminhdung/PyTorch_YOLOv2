@@ -56,8 +56,9 @@ class Compose(object):
         # print(self.k)
         return img, boxes, labels
 class lib_augment(object):
-    def __init__(self, size):
+    def __init__(self, size, mean):
         self.size = size
+        self.mean = mean
     #     if boxes is not None:
     #         bbs = BoundingBoxesOnImage([
     #             BoundingBox(x1=x, y1=y, x2=xx, y2=yy) for (x, y, xx, yy) in boxes
@@ -83,7 +84,13 @@ class lib_augment(object):
                     iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
                 ]),
                 #Expand
-                
+                iaa.Sometimes(0.5, iaa.Pad(
+                    percent=ia.random.RNG(25606).integers(0,3),
+                    pad_mode='constant',
+                    pad_cval=sum(self.mean),
+                    )),
+                #Random sample crop
+                iaa.Crop
                 #Random mirror
                 iaa.Fliplr(0.5),
                 #resize
@@ -440,7 +447,7 @@ class Augmentation(object):
         self.augment = Compose([
             ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
-            lib_augment(self.size),
+            lib_augment(self.size, self.mean),
             # PhotometricDistort(),          # 图像颜色增强
             # Expand(self.mean),             # 扩充增强
             # RandomSampleCrop(),            # 随机剪裁
