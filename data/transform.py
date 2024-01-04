@@ -72,14 +72,14 @@ class lib_augment(object):
             ], shape = image.shape)
             seq = iaa.Sequential([
                 #PhotometricDistort
-                iaa.Sometimes(0.5, [iaa.Add(-70, 70)])
-                iaa.Squential([
+                iaa.Sometimes(0.5, iaa.Add((0, 40))),
+                iaa.Sequential([
                     iaa.GammaContrast((0.5, 1.5)),
-                    iaa.SomeOf(2, [
-                        iaa.MultiplyHueAndSaturation((0.5, 1.2), per_channel=True),
+                    iaa.SomeOf(1, [
+                        iaa.MultiplyHueAndSaturation((0.5, 1.2)),
                         iaa.MultiplyHue((0.5, 1.2)),
                         iaa.MultiplySaturation((0.5, 1.2))
-                    ]. random_order=True)
+                    ], random_order=True),
                     iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
                 ]),
                 #Expand
@@ -108,7 +108,7 @@ class lib_augment(object):
         
 class ConvertFromInts(object):
     def __call__(self, image, boxes=None, labels=None):
-        return image.astype(np.float32), boxes, labels
+        return image.astype(np.uint8), boxes, labels
 
 
 class Normalize(object):
