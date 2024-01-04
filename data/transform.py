@@ -71,24 +71,23 @@ class lib_augment(object):
                 BoundingBox(x1=boxes[i][0], y1=boxes[i][1], x2=boxes[i][2], y2=boxes[i][3], label = labels[i]) for i in range(len(boxes))
             ], shape = image.shape)
             seq = iaa.Sequential([
-                        iaa.SomeOf(1, [
-                            iaa.GaussianBlur(sigma=(0.5, 3.0)),
-                            # iaa.MedianBlur(k=(3, 7)),
-                            iaa.BilateralBlur(d=(3, 10), sigma_color=(10, 250), sigma_space=(10, 250)),
-                            iaa.MotionBlur(k=7, angle=(0, 360), direction=(-0.5, 0.5))
-                        ]),
-                        iaa.Fliplr(0.5),
-                        iaa.LinearContrast((0.75, 1.5)),
-                        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-                        iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
-                        iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
-                        iaa.SomeOf(1, [
-                            iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                        ]),
-                        iaa.Resize({"height": self.size, "width": self.size})
+                #PhotometricDistort
+                iaa.Sometimes(0.5, [iaa.Add(-70, 70)])
+                iaa.Squential([
+                    iaa.GammaContrast((0.5, 1.5)),
+                    iaa.SomeOf(2, [
+                        iaa.MultiplyHueAndSaturation((0.5, 1.2), per_channel=True),
+                        iaa.MultiplyHue((0.5, 1.2)),
+                        iaa.MultiplySaturation((0.5, 1.2))
+                    ]. random_order=True)
+                    iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
+                ]),
+                #Expand
+                
+                #Random mirror
+                iaa.Fliplr(0.5),
+                #resize
+                iaa.Resize({"height": self.size, "width": self.size})
 
             ])
         
