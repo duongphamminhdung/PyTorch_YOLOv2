@@ -72,23 +72,23 @@ class lib_augment(object):
             ], shape = image.shape)
             seq = iaa.Sequential([
                         iaa.SomeOf(1, [
-                            iaa.GaussianBlur(sigma=(0.5, 3.0)),
+                            iaa.GaussianBlur(sigma=(0.5, 2.5)),
                             # iaa.MedianBlur(k=(3, 7)),
-                            iaa.BilateralBlur(d=(3, 10), sigma_color=(10, 250), sigma_space=(10, 250)),
-                            iaa.MotionBlur(k=7, angle=(0, 360), direction=(-0.5, 0.5))
+                            iaa.BilateralBlur(d=(3, 7), sigma_color=(10, 250), sigma_space=(10, 250)),
+                            iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
                         ]),
-                        iaa.Fliplr(0.5),
-                        iaa.LinearContrast((0.75, 1.5)),
-                        iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-                        iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
-                        iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
-                        iaa.SomeOf(1, [
-                            iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                            iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                        ]),
-                        iaa.Resize({"height": self.size, "width": self.size})
+                        # iaa.Fliplr(0.5),
+                        # iaa.LinearContrast((0.75, 1.5)),
+                        # iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+                        # iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
+                        # iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
+                        # iaa.SomeOf(1, [
+                        #     iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
+                        #     iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
+                        #     iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                        #     iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                        # ]),
+                        # iaa.Resize({"height": self.size, "width": self.size})
 
             ])
         
@@ -442,12 +442,12 @@ class Augmentation(object):
             ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
             lib_augment(self.size),
-            # PhotometricDistort(),          # 图像颜色增强
-            # Expand(self.mean),             # 扩充增强
-            # RandomSampleCrop(),            # 随机剪裁
-            # RandomMirror(),                # 随机水平镜像
+            PhotometricDistort(),          # 图像颜色增强
+            Expand(self.mean),             # 扩充增强
+            RandomSampleCrop(),            # 随机剪裁
+            RandomMirror(),                # 随机水平镜像
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
-            # Resize(self.size),             # resize操作
+            Resize(self.size),             # resize操作
             Normalize(self.mean, self.std) # 图像颜色归一化
         ])
 
