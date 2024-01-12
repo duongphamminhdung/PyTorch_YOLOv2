@@ -55,6 +55,50 @@ class Compose(object):
         self.k += 1
         # print(self.k)
         return img, boxes, labels
+    
+class random_photo(object):
+    def __call__(self, image, boxes=None, labels=None):
+        assert image.dtype == np.uint8
+        if boxes is not None:
+            bbs = BoundingBoxesOnImage([
+                BoundingBox(x1=boxes[i][0], y1=boxes[i][1], x2=boxes[i][2], y2=boxes[i][3], label = labels[i]) for i in range(len(boxes))
+            ], shape = image.shape)
+            seq = iaa.Sequential([
+                    iaa.SomeOf(2, [
+                        iaa.GaussianBlur(sigma=(0.5, 1)),
+                        # iaa.MedianBlur(k=(3, 5)),
+                        iaa.BilateralBlur(d=(3,5), sigma_color=(10, 250), sigma_space=(10, 250)),
+                        iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
+                    ], random_order = True),
+                    iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+                    iaa.Sometimes(0.5, iaa.Add((0, 40))),
+                    iaa.Sequential([
+                        iaa.SomeOf(2, [
+                            iaa.LinearContrast((0.75, 1.5)),
+                            iaa.GammaContrast((0.5, 1.5)),
+                            iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
+                        ], random_order=True),
+                        iaa.SomeOf(1, [
+                            iaa.MultiplyHueAndSaturation((0.5, 1.2)),
+                            iaa.MultiplyHue((0.5, 1.2)),
+                            iaa.MultiplySaturation((0.5, 1.2))
+                        ], random_order=True),
+                    ]), 
+            ])
+        
+        image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
+        bbs_aug = bbs_aug.remove_out_of_image().clip_out_of_image()
+        # import pdb; pdb.set_trace()
+        bbs = np.zeros((len(bbs_aug), 4))
+        labels = np.zeros((len(bbs_aug), 1))
+        for k in range(len(bbs_aug)):
+            t = bbs_aug[k]
+            bbs[k] += (t.x1, t.y1, t.x2, t.y2)
+            labels[k] += t.label
+        # bbs = np.array([t.x1, t.y1, t.x1, t.y2] for t in bbs_aug)
+        
+        return image_aug, bbs, labels
+ 
 class lib_augment(object):
     def __init__(self, size):
         self.size = size
@@ -71,25 +115,35 @@ class lib_augment(object):
                 BoundingBox(x1=boxes[i][0], y1=boxes[i][1], x2=boxes[i][2], y2=boxes[i][3], label = labels[i]) for i in range(len(boxes))
             ], shape = image.shape)
             seq = iaa.Sequential([
-                        iaa.SomeOf(1, [
-                            iaa.GaussianBlur(sigma=(0.5, 2.5)),
-                            # iaa.MedianBlur(k=(3, 7)),
-                            iaa.BilateralBlur(d=(3, 7), sigma_color=(10, 250), sigma_space=(10, 250)),
-                            iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
-                        ]),
-                        # iaa.Fliplr(0.5),
-                        # iaa.LinearContrast((0.75, 1.5)),
-                        # iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
-                        # iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
-                        # iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
-                        # iaa.SomeOf(1, [
-                        #     iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
-                        #     iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
-                        #     iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                        #     iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
-                        # ]),
-                        # iaa.Resize({"height": self.size, "width": self.size})
-
+                    iaa.SomeOf(1, [
+                        iaa.GaussianBlur(sigma=(0.5, 1)),
+                        # iaa.MedianBlur(k=(3, 5)),
+                        iaa.BilateralBlur(d=(3,5), sigma_color=(10, 250), sigma_space=(10, 250)),
+                        iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
+                    ]),
+                    # iaa.Fliplr(0.5)
+                    # iaa.LinearContrast((0.75, 1.5)),
+                    # iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+                    # iaa.Multiply((1.2, 1.5)), # change brightness, doesn't affect BBs
+                    # iaa.PerspectiveTransform(scale=(0.01, 0.05), keep_size=True, fit_output=True, cval=(0)),
+                    # iaa.SomeOf(1, [
+                    #     iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=[0, 1], cval=0, mode='constant'),
+                    #     iaa.Affine(translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)}, order=[0, 1], cval=0, mode='constant'),
+                    #     iaa.Affine(rotate = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                    #     iaa.Affine(shear = (-7, 7), order=[0, 1], cval=0, mode='constant'),
+                    # ]),
+                    
+                    # # #Photometric distortion
+                    # iaa.Sometimes(0.5, iaa.Add((0, 40))),
+                    # iaa.Sequential([
+                    #     iaa.GammaContrast((0.5, 1.5)),
+                    #     iaa.SomeOf(1, [
+                    #         iaa.MultiplyHueAndSaturation((0.5, 1.2)),
+                    #         iaa.MultiplyHue((0.5, 1.2)),
+                    #         iaa.MultiplySaturation((0.5, 1.2))
+                    #     ], random_order=True),
+                    #     iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
+                    # ]), 
             ])
         
         image_aug, bbs_aug = seq(image=image, bounding_boxes=bbs)
@@ -103,8 +157,6 @@ class lib_augment(object):
             labels[k] += t.label
         # bbs = np.array([t.x1, t.y1, t.x1, t.y2] for t in bbs_aug)
         
-        for box in bbs:
-            image_aug = cv2.rectangle(image_aug, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 0, 0), 2)
         return image_aug, bbs, labels
         
 class ConvertFromInts(object):
@@ -439,8 +491,9 @@ class Augmentation(object):
         self.size = size
         self.std = std
         self.augment = Compose([
-            ConvertFromInts(),             # 将int类型转换为float32类型
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
+            random_photo(),            
+            ConvertFromInts(),             # 将int类型转换为float32类型
             lib_augment(self.size),
             PhotometricDistort(),          # 图像颜色增强
             Expand(self.mean),             # 扩充增强

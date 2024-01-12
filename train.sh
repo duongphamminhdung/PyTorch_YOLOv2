@@ -5,5 +5,6 @@ python train.py \
         -bs 32 \
         -accu 4 \
         --lr 0.001 \
-        --max_epoch 200 \
-        --num_workers 8
+        --max_epoch 1000 \
+        --num_workers 8 \
+        --seed 2506

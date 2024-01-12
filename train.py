@@ -1,9 +1,11 @@
 from __future__ import division
 
+import numpy as np #for set the seed...
 import os
 import random
 import argparse
 import time
+import imgaug
 
 import torch
 import torch.nn.functional as F
@@ -76,6 +78,8 @@ def parse_args():
                         help='Weight decay for SGD')
     parser.add_argument('--gamma', default=0.1, type=float, 
                         help='Gamma update for SGD')
+    parser.add_argument('--seed', default=2506, type=int, 
+                        help='seed for iaa random')
 
     # 数据集参数
     parser.add_argument('-d', '--dataset', default='voc',
@@ -110,6 +114,16 @@ def train():
         train_size = 416
         val_size = 416
 
+    #seed
+    if args.seed is not None:
+        imgaug.random.RNG(args.seed)
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+    else:
+        imgaug.random.RNG(0)
+        random.seed(0)
+        np.random.seed(0)
+        
     # 构建yolov2的配置文件
     cfg = build_model_config(args)
 
@@ -266,12 +280,15 @@ def train():
             cur_map = evaluator.map
             if cur_map > best_map:
                 # update best-map
+                print(best_map)
                 best_map = cur_map
                 # save model
                 print('Saving state, epoch:', epoch + 1)
                 weight_name = '{}_epoch_{}_{:.1f}.pth'.format(args.version, epoch + 1, best_map*100)
                 checkpoint_path = os.path.join(path_to_save, weight_name)
-                torch.save(model.state_dict(), checkpoint_path)                      
+                torch.save(model.state_dict(), checkpoint_path)  
+        if best_map >= 0.78:
+            break                   
 
 
 def set_lr(optimizer, lr):

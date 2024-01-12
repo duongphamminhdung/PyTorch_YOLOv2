@@ -39,6 +39,8 @@ parser.add_argument('--cuda', action='store_true', default=True,
                     help='use cuda.')
 parser.add_argument('--save', action='store_true', default=True, 
                     help='save vis results.')
+parser.add_argument('--seed', default=2506, type=int, 
+                    help='seed for iaa random')
 
 args = parser.parse_args()
 
@@ -171,7 +173,10 @@ if __name__ == '__main__':
                     img_size=input_size)
 
     # 用于可视化，给不同类别的边界框赋予不同的颜色，为了便于区分。
-    np.random.seed(0)
+    if args.seed is not None:
+        np.random.seed(args.seed)
+    else:    
+        np.random.seed(0)
     class_colors = [(np.random.randint(255),
                      np.random.randint(255),
                      np.random.randint(255)) for _ in range(num_classes)]
