@@ -7,4 +7,5 @@ python train.py \
         --lr 0.001 \
         --max_epoch 1000 \
         --num_workers 8 \
-        --seed 2506
+        --seed 2506 \
+        --resume "/root/PyTorch_YOLOv2/yolov2_epoch_46_57.7.pth" \

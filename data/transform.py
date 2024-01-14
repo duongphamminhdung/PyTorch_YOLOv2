@@ -495,7 +495,7 @@ class Augmentation(object):
             random_photo(),            
             ConvertFromInts(),             # 将int类型转换为float32类型
             lib_augment(self.size),
-            PhotometricDistort(),          # 图像颜色增强
+            # PhotometricDistort(),          # 图像颜色增强
             Expand(self.mean),             # 扩充增强
             RandomSampleCrop(),            # 随机剪裁
             RandomMirror(),                # 随机水平镜像
