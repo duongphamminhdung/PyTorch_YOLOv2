@@ -17,4 +17,4 @@ conda init
 echo conda create --name simp python=3.7
 conda create --name simp python=3.7
 
-tmux new -s 0
+tmux new -s 2506
