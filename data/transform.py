@@ -51,8 +51,8 @@ class Compose(object):
         for t in self.transforms:
             img, boxes, labels = t(img, boxes, labels)
         # import pdb; pdb.set_trace()
-        # cv2.imwrite('test/'+str(self.k)+'.jpg', img)
-        self.k += 1
+        # cv2.imwrite('test/'+str(self.k)+'.jpg', img*255)
+        # self.k += 1
         # print(self.k)
         return img, boxes, labels
     
@@ -64,13 +64,13 @@ class random_photo(object):
                 BoundingBox(x1=boxes[i][0], y1=boxes[i][1], x2=boxes[i][2], y2=boxes[i][3], label = labels[i]) for i in range(len(boxes))
             ], shape = image.shape)
             seq = iaa.Sequential([
-                    iaa.SomeOf(2, [
+                    iaa.SomeOf(1, [
                         iaa.GaussianBlur(sigma=(0.5, 1)),
                         # iaa.MedianBlur(k=(3, 5)),
                         iaa.BilateralBlur(d=(3,5), sigma_color=(10, 250), sigma_space=(10, 250)),
                         iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
                     ], random_order = True),
-                    iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5),
+                    iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.1), per_channel=0.3),
                     iaa.Sometimes(0.5, iaa.Add((0, 40))),
                     iaa.Sequential([
                         iaa.SomeOf(2, [
@@ -79,9 +79,9 @@ class random_photo(object):
                             iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
                         ], random_order=True),
                         iaa.SomeOf(1, [
-                            iaa.MultiplyHueAndSaturation((0.5, 1.2)),
-                            iaa.MultiplyHue((0.5, 1.2)),
-                            iaa.MultiplySaturation((0.5, 1.2))
+                            iaa.AddToHueAndSaturation((-5, 5)),
+                            iaa.AddToHue((-5, 5)),
+                            iaa.AddToSaturation((-5, 5))
                         ], random_order=True),
                     ]), 
             ])
@@ -179,7 +179,25 @@ class Normalize(object):
 
 
 class ToAbsoluteCoords(object):
+    
+    def __init__(self):
+        self.k = 0
+        
     def __call__(self, image, boxes=None, labels=None):
+        img = image
+        height, width, channels = img.shape
+        # import pdb; pdb.set_trace()
+        for bbox in boxes:
+            
+            x1, y1, x2, y2 = bbox
+            x1, y1, x2, y2 = (x1)*width, (y1)*height, (x2)*width, (y2)*height
+            print(x1, y1, x2, y2, img.shape)
+            # plot bbox
+            img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+        self.k += 1
+        
+        cv2.imwrite('test/'+str(self.k)+'_.jpg', img)
+        
         height, width, channels = image.shape
         boxes[:, 0] *= width
         boxes[:, 2] *= width
@@ -218,9 +236,24 @@ class ConvertColor(object):
 class Resize(object):
     def __init__(self, size=640):
         self.size = size
+        self.k = 0
 
     def __call__(self, image, boxes=None, labels=None):
         image = cv2.resize(image, (self.size, self.size))
+        img = image
+        height, width, channels = img.shape
+        # import pdb; pdb.set_trace()
+        for bbox in boxes:
+            
+            x1, y1, x2, y2 = bbox
+            x1, y1, x2, y2 = (x1)*width, (y1)*height, (x2)*width, (y2)*height
+            print(x1, y1, x2, y2, img.shape)
+            # plot bbox
+            img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+        self.k += 1
+    
+        cv2.imwrite('test/'+str(self.k)+'.jpg', img)
+
         return image, boxes, labels
 
 
@@ -492,12 +525,12 @@ class Augmentation(object):
         self.std = std
         self.augment = Compose([
             ToAbsoluteCoords(),            # 将归一化的相对坐标转换为绝对坐标
-            random_photo(),            
             ConvertFromInts(),             # 将int类型转换为float32类型
-            lib_augment(self.size),
+            # lib_augment(self.size),
             # PhotometricDistort(),          # 图像颜色增强
             Expand(self.mean),             # 扩充增强
             RandomSampleCrop(),            # 随机剪裁
+            random_photo(),            
             RandomMirror(),                # 随机水平镜像
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
             Resize(self.size),             # resize操作
