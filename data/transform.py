@@ -67,15 +67,15 @@ class random_photo(object):
                     iaa.SomeOf(1, [
                         iaa.GaussianBlur(sigma=(0.5, 1)),
                         # iaa.MedianBlur(k=(3, 5)),
-                        iaa.BilateralBlur(d=(3,5), sigma_color=(10, 250), sigma_space=(10, 250)),
-                        iaa.MotionBlur(k=5, angle=(0, 360), direction=(-0.5, 0.5))
+                        iaa.BilateralBlur(d=1, sigma_color=(10, 30), sigma_space=(10, 30)),
+                        iaa.MotionBlur(k=3, angle=(0, 360), direction=(-0.5, 0.5))
                     ], random_order = True),
                     iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.1), per_channel=0.3),
                     iaa.Sometimes(0.5, iaa.Add((0, 40))),
                     iaa.Sequential([
-                        iaa.SomeOf(2, [
-                            iaa.LinearContrast((0.75, 1.5)),
-                            iaa.GammaContrast((0.5, 1.5)),
+                        iaa.SomeOf(1, [
+                            iaa.LinearContrast((0.8, 1.2)),
+                            iaa.GammaContrast((0.8, 1.2)),
                             iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)),
                         ], random_order=True),
                         iaa.SomeOf(1, [
@@ -123,6 +123,7 @@ class Normalize(object):
         self.std = np.array(std, dtype=np.float32)
 
     def __call__(self, image, boxes=None, labels=None):
+        
         image = image.astype(np.float32)
         image /= 255.
         image -= self.mean
@@ -139,7 +140,7 @@ class ToAbsoluteCoords(object):
     def __call__(self, image, boxes=None, labels=None):
         # img = image
         # height, width, channels = img.shape
-        # import pdb; pdb.set_trace()
+        # # import pdb; pdb.set_trace()
         # for bbox in boxes:
             
         #     x1, y1, x2, y2 = bbox
@@ -193,19 +194,6 @@ class Resize(object):
 
     def __call__(self, image, boxes=None, labels=None):
         image = cv2.resize(image, (self.size, self.size))
-        img = image
-        height, width, channels = img.shape
-        # import pdb; pdb.set_trace()
-        # for bbox in boxes:
-            
-        #     x1, y1, x2, y2 = bbox
-        #     x1, y1, x2, y2 = (x1)*width, (y1)*height, (x2)*width, (y2)*height
-        #     # print(x1, y1, x2, y2, img.shape)
-        #     # plot bbox
-        #     img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
-        # self.k += 1
-    
-        # cv2.imwrite('test/'+str(self.k)+'.jpg', img)
 
         return image, boxes, labels
 
@@ -470,6 +458,34 @@ class PhotometricDistort(object):
         im, boxes, labels = distort(im, boxes, labels)
         return im, boxes, labels
 
+class draw_augmented(object):
+    def __init__(self, mean=None, std=None):
+        self.k = 0
+        self.mean = np.array(mean, dtype=np.float32)
+        self.std = np.array(std, dtype=np.float32)
+
+    def __call__(self, image, boxes=None, labels=None):
+        
+        # image = image.astype(np.float32)
+        # image /= 255.
+        # image -= self.mean
+        # image /= self.std
+
+        # img = (image*self.std + self.mean) *255.
+        # height, width, channels = img.shape
+        # # import pdb; pdb.set_trace()
+        # for bbox in boxes:
+            
+        #     x1, y1, x2, y2 = bbox
+        #     x1, y1, x2, y2 = (x1)*width, (y1)*height, (x2)*width, (y2)*height
+        #     # print(x1, y1, x2, y2, img.shape)
+        #     # plot bbox
+        #     img = cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+        # self.k += 1
+    
+        # cv2.imwrite('test/'+str(self.k)+'.jpg', img)
+        
+        return image, boxes, labels
 
 class Augmentation(object):
     def __init__(self, size=640, mean=(0.406, 0.456, 0.485), std=(0.225, 0.224, 0.229)):
@@ -488,7 +504,8 @@ class Augmentation(object):
             ToPercentCoords(),             # 将绝对坐标转换为归一化的相对坐标
             Resize(self.size),             # resize操作
             remove_bbox_out_of_image(),
-            Normalize(self.mean, self.std) # 图像颜色归一化
+            Normalize(self.mean, self.std), # 图像颜色归一化
+            draw_augmented(self.mean, self.std),
         ])
 
     def __call__(self, img, boxes, labels):
